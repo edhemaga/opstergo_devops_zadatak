@@ -1,0 +1,6 @@
+SET "Answer" 0
+INCR "Answer"
+INCR "Answer"
+INCRBY "Answer" 40
+SET "Hello" "World"
+MSET "Dev" "Ops" "Opstergo" "Interview"
