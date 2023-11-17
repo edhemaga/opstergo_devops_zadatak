@@ -9,7 +9,19 @@ function check_os_type {
         ;;
         "linux") echo 2
         ;;
-        "*") echo 0
+        "*") echo 3
+        ;;
+    esac
+}
+
+function check_cpu_architecture {
+    local arch_type=$(uname -p | tr '[:upper:]' '[:lower:]')
+    case $arch_type in
+        "arm") echo 1
+        ;;
+        "x86_64") echo 2
+        ;;
+        "*") echo 100
         ;;
     esac
 }
@@ -17,6 +29,14 @@ function check_os_type {
 #Check if docker is installed on the system
 function check_docker {
     if command -v docker &> /dev/null; then
+        echo 0
+    else
+        echo 1
+    fi
+}
+
+function check_hyperkit {
+    if command -v hyperkit &> /dev/null; then
         echo 0
     else
         echo 1
