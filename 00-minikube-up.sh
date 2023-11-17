@@ -31,8 +31,8 @@ case "$(uname -s)" in
         open -a Docker
         #Added a check whether docker daemon is running in order for minikube starting not to fail
         until docker version > /dev/null 2>&1
-        do
-        sleep 1
+            do
+                sleep 1
         done
         #Since Hyperkit is not supported on M1 an adjustment was made
         minikube config set driver docker
@@ -54,6 +54,7 @@ minikube addons enable metrics-server
 
 MINIKUBE_IP=`minikube ip`
 
+kubectl create namespace redis
 
 echo
 echo "Cool! MiniKube is up on ${MINIKUBE_IP} address."
