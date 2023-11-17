@@ -21,7 +21,7 @@ function check_cpu_architecture {
         ;;
         "x86_64") echo 2
         ;;
-        "*") echo 100
+        "*") echo 2
         ;;
     esac
 }
@@ -37,6 +37,14 @@ function check_docker {
 
 function check_hyperkit {
     if command -v hyperkit &> /dev/null; then
+        echo 0
+    else
+        echo 1
+    fi
+}
+
+function check_minikube {
+    if command -v minikube &> /dev/null; then
         echo 0
     else
         echo 1
