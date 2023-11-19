@@ -48,7 +48,9 @@ esac
 
 ( minikube status ) || minikube start --kubernetes-version=${KUBERNETES_VERSION} --nodes 2
 
+kubectl apply -f kubernetes/sts.yaml
 
+sh ./03-redis-import.sh
 # enable metrics server
 minikube addons enable metrics-server
 

@@ -58,6 +58,9 @@ spec:
             - "no"
           ports:
           - containerPort: 6379
+          volumeMounts:
+            - name: data
+              mountPath: data
   volumeClaimTemplates:
     - metadata:
         name: data
