@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: master-service
+spec:
+  selector:
+    app: redis-master
+  type: NodePort
+  ports:
+    - protocol: TCP
+      nodePort: 32400
+      # The port does not have to be the as it will be the port used to communicate with the container
+      port: 6379
+      # Target port points to the port of the container, they have to be the same 
+      targetPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: worker-service
+spec:
+  selector:
+    app: redis-worker
+  type: NodePort
+  ports:
+    - protocol: TCP
+      nodePort: 32401
+      # The port does not have to be the as it will be the port used to communicate with the container
+      port: 6379
+      # Target port points to the port of the container, they have to be the same 
+      targetPort: 6379
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-master
+  namespace: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  serviceName: redis-service
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      # Here we assign pods to certain node
+      nodeName: minikube
+      containers:
+        - name: redis
+          image: redis:latest
+          command:
+            - "redis-server"
+          args:
+            - "--protected-mode"
+            - "no"
+          ports:
+          - containerPort: 6379
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-worker
+  namespace: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  serviceName: worker-service
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:latest
+          command:
+            - "redis-server"
+          args:
+            - "--slaveof"
+            - "primary.default.svc.cluster.local"
+            - "6379"
+            - "--protected-mode"
+            - "no"
+          ports:
+          - containerPort: 6379
