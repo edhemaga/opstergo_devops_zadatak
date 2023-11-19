@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: master-service
+  name: master
 spec:
   selector:
-    app: redis-master
+    app: master
   type: NodePort
   ports:
     - protocol: TCP
@@ -17,10 +17,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: worker-service
+  name: worker
 spec:
   selector:
-    app: redis-worker
+    app: worker
   type: NodePort
   ports:
     - protocol: TCP
@@ -33,18 +33,18 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: redis-master
-  namespace: redis
+  name: master
+  #namespace: redis
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: redis
-  serviceName: redis-service
+      app: master
+  serviceName: master
   template:
     metadata:
       labels:
-        app: redis
+        app: master
     spec:
       # Here we assign pods to certain node
       nodeName: minikube
@@ -70,18 +70,18 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: redis-worker
-  namespace: redis
+  name: worker
+  #namespace: redis
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: redis
-  serviceName: worker-service
+      app: worker
+  serviceName: worker
   template:
     metadata:
       labels:
-        app: redis
+        app: worker
     spec:
       containers:
         - name: redis
