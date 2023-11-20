@@ -50,6 +50,7 @@ esac
 
 kubectl apply -f kubernetes/sts.yaml
 
+chmod +x ./03-redis-import.sh
 sh ./03-redis-import.sh
 # enable metrics server
 minikube addons enable metrics-server
