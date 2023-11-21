@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: redis
+  namespace: redis
 spec:
   selector:
     app: redis
@@ -14,22 +15,6 @@ spec:
       # Target port points to the port of the container, they have to be the same 
       targetPort: 6379
 ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: worker
-# spec:
-#   selector:
-#     app: worker
-#   type: NodePort
-#   ports:
-#     - protocol: TCP
-#       nodePort: 32401
-#       # The port does not have to be the as it will be the port used to communicate with the container
-#       port: 6379
-#       # Target port points to the port of the container, they have to be the same 
-#       targetPort: 6379
-# ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -82,3 +67,26 @@ spec:
         resources:
           requests:
             storage: 1Gi
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: redis-info
+  namespace: redis
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: redis-job
+            image: redis:latest
+            imagePullPolicy: IfNotPresent
+            command: [
+              '/bin/bash',
+              '-c',
+              # Host 'redis' was used because of service name, the pod is accessed via service therefore this name is used
+              'redis-cli -h redis -p 6379 INFO replication'
+              ]
+          restartPolicy: OnFailure
