@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: master
+  name: redis
 spec:
   selector:
-    app: master
+    app: redis
   type: NodePort
   ports:
     - protocol: TCP
@@ -14,40 +14,38 @@ spec:
       # Target port points to the port of the container, they have to be the same 
       targetPort: 6379
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: worker
-spec:
-  selector:
-    app: worker
-  type: NodePort
-  ports:
-    - protocol: TCP
-      nodePort: 32401
-      # The port does not have to be the as it will be the port used to communicate with the container
-      port: 6379
-      # Target port points to the port of the container, they have to be the same 
-      targetPort: 6379
----
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: worker
+# spec:
+#   selector:
+#     app: worker
+#   type: NodePort
+#   ports:
+#     - protocol: TCP
+#       nodePort: 32401
+#       # The port does not have to be the as it will be the port used to communicate with the container
+#       port: 6379
+#       # Target port points to the port of the container, they have to be the same 
+#       targetPort: 6379
+# ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: master
-  #namespace: redis
+  name: redis
+  namespace: redis
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: master
-  serviceName: master
+      app: redis
+  serviceName: redis
   template:
     metadata:
       labels:
-        app: master
+        app: redis
     spec:
-      # Here we assign pods to certain node
-      nodeName: minikube
       containers:
         - name: redis
           image: redis:latest
@@ -61,6 +59,21 @@ spec:
           volumeMounts:
             - name: data
               mountPath: data
+              readOnly: false
+      # Pod anti affinity by selecting pods with certain key-value pairs, distributes them over available nodes
+      # Since we have two nodes, there will be two replicas to distribute; in general we should have more nodes than pods if we want to distribute them
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - redis
+            # Topology specification is necessary, since we are dealing with minikube, hostname would be used, but usually this would be used with 'zone'
+            # Important - topology key of the nodes must be the same not the actual value of the key
+            topologyKey: "kubernetes.io/hostname"
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -69,33 +82,3 @@ spec:
         resources:
           requests:
             storage: 1Gi
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: worker
-  #namespace: redis
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: worker
-  serviceName: worker
-  template:
-    metadata:
-      labels:
-        app: worker
-    spec:
-      containers:
-        - name: redis
-          image: redis:latest
-          command:
-            - "redis-server"
-          args:
-            - "--slaveof"
-            - "primary.default.svc.cluster.local"
-            - "6379"
-            - "--protected-mode"
-            - "no"
-          ports:
-          - containerPort: 6379
