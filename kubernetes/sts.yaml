@@ -46,10 +46,17 @@ spec:
             - "no"
           ports:
           - containerPort: 6379
+          # This is the volume on the container within pod
           volumeMounts:
             - name: data
               mountPath: data
               readOnly: false
+          # readinessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: 6379
+          #   initialDelaySeconds: 5
+          #   periodSeconds: 10
       # Pod anti affinity by selecting pods with certain key-value pairs, distributes them over available nodes
       # Since we have two nodes, there will be two replicas to distribute; in general we should have more nodes than pods if we want to distribute them
       affinity:

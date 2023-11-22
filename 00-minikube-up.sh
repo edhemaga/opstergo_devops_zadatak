@@ -51,13 +51,14 @@ esac
 kubectl apply -f kubernetes/sts.yaml
 
 chmod +x ./03-redis-import.sh
-sh ./03-redis-import.sh
-# enable metrics server
+#sh ./03-redis-import.sh
+#Run the script manually after containers are up
+
+#enable metrics server
 minikube addons enable metrics-server
 
 MINIKUBE_IP=`minikube ip`
 
-kubectl create namespace redis
 
 echo
 echo "Cool! MiniKube is up on ${MINIKUBE_IP} address."
